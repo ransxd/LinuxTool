@@ -52,6 +52,15 @@ bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_tim
 
 **下载链接**: [fix_timestamp_jumps.sh](https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_timestamp_jumps.sh)
 
+**直接运行**:
+```bash
+# 使用curl直接运行脚本
+bash <(curl -s https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_timestamp_jumps.sh)
+
+# 或者使用wget
+bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_timestamp_jumps.sh)
+```
+
 #### 2. fix_ts_streaming.sh
 
 使用分段处理方法，更加节省空间。
@@ -64,6 +73,15 @@ bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_tim
 
 **下载链接**: [fix_ts_streaming.sh](https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_ts_streaming.sh)
 
+**直接运行**:
+```bash
+# 使用curl直接运行脚本
+bash <(curl -s https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_ts_streaming.sh)
+
+# 或者使用wget
+bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_ts_streaming.sh)
+```
+
 #### 3. fix_ts_with_demuxer.sh
 
 使用concat demuxer方法修复和合并TS文件。
@@ -75,6 +93,15 @@ bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_tim
 
 **下载链接**: [fix_ts_with_demuxer.sh](https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_ts_with_demuxer.sh)
 
+**直接运行**:
+```bash
+# 使用curl直接运行脚本
+bash <(curl -s https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_ts_with_demuxer.sh)
+
+# 或者使用wget
+bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_ts_with_demuxer.sh)
+```
+
 #### 4. fix_and_merge_ts.sh
 
 基本的TS文件修复和合并脚本，使用concat协议逐个处理文件。
@@ -85,6 +112,15 @@ bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_tim
 - 适用于大多数简单情况
 
 **下载链接**: [fix_and_merge_ts.sh](https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_and_merge_ts.sh)
+
+**直接运行**:
+```bash
+# 使用curl直接运行脚本
+bash <(curl -s https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_and_merge_ts.sh)
+
+# 或者使用wget
+bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_and_merge_ts.sh)
+```
 
 ### 辅助工具脚本
 
@@ -100,6 +136,15 @@ bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_tim
 
 **下载链接**: [verify_fix.sh](https://raw.githubusercontent.com/ransxd/LinuxTool/main/verify_fix.sh)
 
+**直接运行**:
+```bash
+# 使用curl直接运行脚本
+bash <(curl -s https://raw.githubusercontent.com/ransxd/LinuxTool/main/verify_fix.sh) 视频文件名.mp4
+
+# 或者使用wget
+bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/verify_fix.sh) 视频文件名.mp4
+```
+
 #### 6. fix_duration.sh
 
 修复视频文件时长信息的脚本。
@@ -112,6 +157,15 @@ bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_tim
 
 **下载链接**: [fix_duration.sh](https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_duration.sh)
 
+**直接运行**:
+```bash
+# 使用curl直接运行脚本
+bash <(curl -s https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_duration.sh) 输入文件名.mp4 [输出格式]
+
+# 或者使用wget
+bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_duration.sh) 输入文件名.mp4 [输出格式]
+```
+
 #### 7. setup-rclone-onedrive.sh
 
 设置rclone挂载OneDrive云存储的脚本。
@@ -123,6 +177,15 @@ bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/fix_tim
 - 方便将处理后的视频文件备份到云端
 
 **下载链接**: [setup-rclone-onedrive.sh](https://raw.githubusercontent.com/ransxd/LinuxTool/main/setup-rclone-onedrive.sh)
+
+**直接运行**:
+```bash
+# 使用curl直接运行脚本
+sudo bash <(curl -s https://raw.githubusercontent.com/ransxd/LinuxTool/main/setup-rclone-onedrive.sh)
+
+# 或者使用wget
+sudo bash <(wget -qO- https://raw.githubusercontent.com/ransxd/LinuxTool/main/setup-rclone-onedrive.sh)
+```
 
 ## 使用方法
 
