@@ -8,30 +8,30 @@ NC='\033[0m' # No Color
 
 # 显示菜单
 show_menu() {
-    echo -e "${GREEN}===== OneDrive Rclone 管理脚本 =====${NC}"
-    echo -e "1) 安装并挂载 OneDrive"
-    echo -e "2) 卸载 OneDrive 挂载"
+    echo -e "${GREEN}===== Rclone 远程存储管理脚本 =====${NC}"
+    echo -e "1) 安装并挂载远程存储"
+    echo -e "2) 卸载远程存储挂载"
     echo -e "0) 退出"
     echo -e "${YELLOW}请选择操作:${NC}"
     read -p "输入选项编号: " MENU_OPTION
 }
 
 # 卸载函数
-unmount_onedrive() {
-    echo -e "${YELLOW}正在检查活动的 rclone OneDrive 挂载...${NC}"
+unmount_remote() {
+    echo -e "${YELLOW}正在检查活动的 rclone 挂载...${NC}"
     
-    # 查找所有rclone-onedrive服务
-    SERVICES=$(systemctl list-units --type=service | grep rclone-onedrive | awk '{print $1}')
+    # 查找所有rclone服务
+    SERVICES=$(systemctl list-units --type=service | grep rclone | awk '{print $1}')
     
     if [ -z "$SERVICES" ]; then
-        echo -e "${RED}未找到活动的 rclone OneDrive 挂载服务${NC}"
+        echo -e "${RED}未找到活动的 rclone 挂载服务${NC}"
         return 1
     fi
     
     # 创建服务数组
     declare -a SERVICE_ARRAY
     i=1
-    echo -e "${GREEN}找到以下 OneDrive 挂载:${NC}"
+    echo -e "${GREEN}找到以下远程存储挂载:${NC}"
     while read -r service; do
         SERVICE_ARRAY[$i]=$service
         # 获取挂载点
@@ -41,7 +41,7 @@ unmount_onedrive() {
     done <<< "$SERVICES"
     
     # 让用户选择要卸载的服务
-    echo -e "${YELLOW}请选择要卸载的 OneDrive:${NC}"
+    echo -e "${YELLOW}请选择要卸载的远程存储:${NC}"
     read -p "输入选项编号(1-$((i-1))): " SERVICE_NUM
     
     # 验证输入
@@ -84,18 +84,18 @@ unmount_onedrive() {
         echo -e "${GREEN}服务仍然启用，但已停止${NC}"
     fi
     
-    echo -e "${GREEN}OneDrive 挂载已成功卸载!${NC}"
+    echo -e "${GREEN}远程存储挂载已成功卸载!${NC}"
     return 0
 }
 
 # 挂载函数 (原脚本的主要部分)
-mount_onedrive() {
+mount_remote() {
     # 让用户输入挂载路径
-    echo -e "${YELLOW}请输入OneDrive的挂载路径:${NC}"
+    echo -e "${YELLOW}请输入远程存储的挂载路径:${NC}"
     read -p "输入挂载路径(默认: /root/OD): " MOUNT_PATH
     MOUNT_PATH=${MOUNT_PATH:-/root/OD}
 
-    echo -e "${GREEN}开始设置rclone挂载OneDrive到${MOUNT_PATH}${NC}"
+    echo -e "${GREEN}开始设置rclone挂载远程存储到${MOUNT_PATH}${NC}"
 
     # 检查是否以root运行
     if [ "$(id -u)" != "0" ]; then
@@ -138,7 +138,7 @@ mount_onedrive() {
     done <<< "$REMOTES"
 
     # 让用户通过数字选择远程存储
-    echo -e "${YELLOW}请选择要挂载的OneDrive远程存储:${NC}"
+    echo -e "${YELLOW}请选择要挂载的远程存储:${NC}"
     read -p "输入选项编号(1-$((i-1))): " REMOTE_NUM
 
     # 验证输入
@@ -151,19 +151,75 @@ mount_onedrive() {
     REMOTE_NAME=${REMOTE_ARRAY[$REMOTE_NUM]}
     echo -e "${GREEN}将使用 '${REMOTE_NAME}' 远程存储${NC}"
 
+    # 检查远程存储类型，如果是S3类型则需要选择bucket
+    echo -e "${YELLOW}检查远程存储类型...${NC}"
+    REMOTE_TYPE=$(rclone config show ${REMOTE_NAME} | grep "type" | awk -F'=' '{print $2}' | tr -d ' ')
+    
+    MOUNT_SOURCE="${REMOTE_NAME}:"
+    SERVICE_SUFFIX=""
+    
+    # S3类型的存储需要指定bucket
+    if [[ "$REMOTE_TYPE" == "s3" ]] || [[ "$REMOTE_TYPE" == "aws" ]] || [[ "$REMOTE_TYPE" == "minio" ]] || [[ "$REMOTE_TYPE" == "cloudflare" ]]; then
+        echo -e "${YELLOW}检测到S3类型存储，正在获取可用buckets...${NC}"
+        
+        # 获取bucket列表
+        BUCKETS=$(rclone lsd ${REMOTE_NAME}: 2>/dev/null | awk '{print $5}')
+        
+        if [ -z "$BUCKETS" ]; then
+            echo -e "${RED}未找到可用的buckets或没有访问权限${NC}"
+            echo -e "${YELLOW}您可以输入bucket名称手动指定，或直接挂载根目录${NC}"
+            read -p "请输入bucket名称（留空挂载根目录）: " BUCKET_NAME
+            if [ -n "$BUCKET_NAME" ]; then
+                MOUNT_SOURCE="${REMOTE_NAME}:${BUCKET_NAME}"
+                SERVICE_SUFFIX="-${BUCKET_NAME}"
+            fi
+        else
+            echo -e "${GREEN}找到以下buckets:${NC}"
+            declare -a BUCKET_ARRAY
+            j=1
+            while read -r bucket; do
+                if [ -n "$bucket" ]; then
+                    BUCKET_ARRAY[$j]=$bucket
+                    echo -e "$j) $bucket"
+                    ((j++))
+                fi
+            done <<< "$BUCKETS"
+            
+            echo -e "$j) 挂载根目录（所有buckets）"
+            echo -e "${YELLOW}请选择要挂载的bucket:${NC}"
+            read -p "输入选项编号(1-$j): " BUCKET_NUM
+            
+            # 验证输入
+            if ! [[ "$BUCKET_NUM" =~ ^[0-9]+$ ]] || [ "$BUCKET_NUM" -lt 1 ] || [ "$BUCKET_NUM" -gt "$j" ]; then
+                echo -e "${RED}错误: 无效的选项${NC}"
+                exit 1
+            fi
+            
+            # 如果不是选择根目录
+            if [ "$BUCKET_NUM" -ne "$j" ]; then
+                BUCKET_NAME=${BUCKET_ARRAY[$BUCKET_NUM]}
+                MOUNT_SOURCE="${REMOTE_NAME}:${BUCKET_NAME}"
+                SERVICE_SUFFIX="-${BUCKET_NAME}"
+                echo -e "${GREEN}将挂载bucket: ${BUCKET_NAME}${NC}"
+            else
+                echo -e "${GREEN}将挂载根目录（所有buckets）${NC}"
+            fi
+        fi
+    fi
+
     # 创建systemd服务文件
     echo -e "${YELLOW}创建systemd服务文件...${NC}"
-    SERVICE_NAME="rclone-onedrive-$(echo $REMOTE_NAME | tr '[:upper:]' '[:lower:]')"
+    SERVICE_NAME="rclone-$(echo ${REMOTE_NAME}${SERVICE_SUFFIX} | tr '[:upper:]' '[:lower:]' | tr ':' '-')"
     cat > /etc/systemd/system/${SERVICE_NAME}.service << EOF
 [Unit]
-Description=RClone OneDrive Mount (${REMOTE_NAME})
+Description=RClone Mount (${MOUNT_SOURCE})
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/bin/rclone mount ${REMOTE_NAME}: ${MOUNT_PATH} \\
+ExecStart=/usr/bin/rclone mount ${MOUNT_SOURCE} ${MOUNT_PATH} \\
   --vfs-cache-mode writes \\
   --buffer-size 64M \\
   --dir-cache-time 5m \\
@@ -172,7 +228,7 @@ ExecStart=/usr/bin/rclone mount ${REMOTE_NAME}: ${MOUNT_PATH} \\
   --checkers 8 \\
   --transfers 4 \\
   --log-level INFO \\
-  --log-file /var/log/rclone-${REMOTE_NAME}.log \\
+  --log-file /var/log/rclone-${REMOTE_NAME}${SERVICE_SUFFIX}.log \\
   --cache-dir /var/cache/rclone \\
   --vfs-cache-max-size 5G \\
   --vfs-cache-max-age 4h \\
@@ -198,13 +254,14 @@ EOF
     sleep 3
     if systemctl is-active --quiet ${SERVICE_NAME}; then
         echo -e "${GREEN}${SERVICE_NAME}服务已成功启动${NC}"
-        echo -e "${GREEN}OneDrive已挂载到${MOUNT_PATH}${NC}"
+        echo -e "${GREEN}存储已挂载到${MOUNT_PATH}${NC}"
+        echo -e "${GREEN}挂载源: ${MOUNT_SOURCE}${NC}"
         echo -e "${GREEN}缓存设置：最大空间5GB，最大缓存时间4小时${NC}"
         echo -e "${YELLOW}您可以使用以下命令检查挂载状态：${NC}"
         echo -e "  df -h ${MOUNT_PATH}"
         echo -e "  mount | grep rclone"
         echo -e "${YELLOW}您可以使用以下命令查看rclone日志：${NC}"
-        echo -e "  tail -f /var/log/rclone-${REMOTE_NAME}.log"
+        echo -e "  tail -f /var/log/rclone-${REMOTE_NAME}${SERVICE_SUFFIX}.log"
     else
         echo -e "${RED}${SERVICE_NAME}服务启动失败，请检查日志：${NC}"
         echo -e "  journalctl -u ${SERVICE_NAME}"
@@ -224,10 +281,10 @@ show_menu
 
 case $MENU_OPTION in
     1)
-        mount_onedrive
+        mount_remote
         ;;
     2)
-        unmount_onedrive
+        unmount_remote
         ;;
     0)
         echo -e "${GREEN}感谢使用，再见！${NC}"
