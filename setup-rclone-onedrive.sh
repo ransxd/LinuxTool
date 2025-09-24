@@ -222,9 +222,13 @@ User=root
 ExecStart=/usr/bin/rclone mount ${MOUNT_SOURCE} ${MOUNT_PATH} \\
   --vfs-cache-mode writes \\
   --buffer-size 64M \\
-  --dir-cache-time 5m \\
+  --dir-cache-time 1m \\
   --vfs-read-chunk-size 32M \\
   --vfs-read-chunk-size-limit 1G \\
+  --vfs-write-back 5s \\
+  --vfs-write-wait 1s \\
+  --multi-thread-streams 4 \\
+  --multi-thread-cutoff 250M \\
   --checkers 8 \\
   --transfers 4 \\
   --log-level INFO \\
@@ -233,7 +237,7 @@ ExecStart=/usr/bin/rclone mount ${MOUNT_SOURCE} ${MOUNT_PATH} \\
   --vfs-cache-max-size 5G \\
   --vfs-cache-max-age 4h \\
   --allow-other \\
-  --attr-timeout 5m
+  --attr-timeout 1m
 ExecStop=/bin/fusermount -u ${MOUNT_PATH}
 Restart=on-abort
 RestartSec=5
